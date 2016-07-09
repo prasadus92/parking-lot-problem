@@ -303,13 +303,13 @@ Not found
 ```
 
 
-#Project Requirements:
+#Project Requirements
 
 1. Latest version of JDK.
 2. Latest version of maven.
 
 
-#Build Instructions:
+#Build Instructions
 
 Run the following command -
 ```sh
@@ -317,7 +317,7 @@ mvn clean install
 ```
 
 
-#Running the project:
+#Running the project
 
 From the project directory, run this command - 
 
