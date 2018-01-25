@@ -16,6 +16,7 @@ public class Main {
             case 0:
                 System.out.println("Please enter 'exit' to quit");
                 System.out.println("Waiting for input...");
+		System.out.println("Still waiting..");
                 // Interactive command-line input/output
                 // Run an infinite loop
                 for (;;) {
