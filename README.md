@@ -1,329 +1,265 @@
-# Problem Statement (Parking Lot)
+# Parking Lot System
 
-I own a multi­storey parking lot that can hold up to 'n' cars at any given point in time. Each slot is given a number starting at 1 increasing with increasing distance from the entry point in steps of one. I want to create an automated ticketing system that allows my customers to use my parking lot without human intervention. 
+A production-grade, enterprise-level automated parking lot management system built with clean architecture principles.
 
-When a car enters my parking lot, I want to have a ticket issued to the driver. The ticket issuing process includes us documenting the registration number (number plate) and the colour of the car and allocating an available parking slot to the car before actually handing over a ticket to the driver (we assume that our customers are nice enough to always park in the slots allocated to them). The customer should be allocated a parking slot which is nearest to the entry. At the exit the customer returns the ticket which then marks the slot they were using as being available.
+## Overview
 
-Due to government regulation, the system should provide me with the ability to find out:
+This system manages a multi-storey parking lot that can hold up to 'n' cars at any given time. Each slot is numbered starting at 1, with lower numbers being closer to the entry point. The system automatically allocates the nearest available slot to incoming vehicles and provides powerful querying capabilities.
 
-a) Registration numbers of all cars of a particular colour.
-b) Slot number in which a car with a given registration number is parked.
-c) Slot numbers of all slots where a car of a particular colour is parked.
+## Features
 
-We interact with the system via a simple set of commands which produce a specific output. Please take a look at the example below, which includes all the commands you need to support - they're self explanatory. The system should allow input in two ways. Just to clarify, the same codebase should support both modes of input - we don't want two distinct submissions.
+- **Automated Slot Allocation**: Vehicles are automatically assigned to the nearest available slot
+- **Efficient Queries**: O(1) lookups by registration number, O(k) lookups by color
+- **Dual Input Modes**: Interactive command-line shell and file-based batch processing
+- **Clean Architecture**: Domain-driven design with clear separation of concerns
+- **Comprehensive Testing**: Unit tests, integration tests, and code coverage reporting
+- **Type-Safe Commands**: Enum-based command pattern (no reflection)
 
-1) It should provide us with an interactive command prompt based shell where commands can be typed in
-2) It should accept a filename as a parameter at the command prompt and read the commands from that file
+## Architecture
 
-
-# Output Format
-
-### Example: File Input
-
-To run the program:
-
-$ my_program file_inputs.txt > output.txt
-
-Input (in file):
-
-```sh
-create_parking_lot 6
-
-park KA-01-HH-1234 White
-
-park KA-01-HH-9999 White
-
-park KA-01-BB-0001 Black
-
-park KA-01-HH-7777 Red
-
-park KA-01-HH-2701 Blue
-
-park KA-01-HH-3141 Black
-
-leave 4
-
-status
-
-park KA-01-P-333 White
-
-park DL-12-AA-9999 White
-
-registration_numbers_for_cars_with_colour White
-
-slot_numbers_for_cars_with_colour White
-
-slot_number_for_registration_number KA-01-HH-3141
-
-slot_number_for_registration_number MH-04-AY-1111
+```
++-------------------------------------------------------------+
+|                    Application Layer                         |
+|  +------------------+   +------------------+                 |
+|  | ParkingLotApp    |   |   InputReader    |                 |
+|  +--------+---------+   +--------+---------+                 |
+|           |                      |                           |
+|  +--------v----------------------v--------+                  |
+|  |           Command Layer                |                  |
+|  |  +----------+   +------------------+   |                  |
+|  |  | Command  |   | CommandExecutor  |   |                  |
+|  |  |  (Enum)  |   |                  |   |                  |
+|  |  +----------+   +--------+---------+   |                  |
+|  +------------------------- | ------------+                  |
+|                             |                                |
+|  +--------------------------v-------------+                  |
+|  |           Service Layer                |                  |
+|  |  +-------------------------------+     |                  |
+|  |  |     ParkingLotService         |     |                  |
+|  |  +---------------+---------------+     |                  |
+|  +------------------|---------------------+                  |
+|                     |                                        |
+|  +------------------v---------------------+                  |
+|  |           Domain Layer                 |                  |
+|  |  +---------+ +------------+ +-------+  |                  |
+|  |  | Vehicle | |ParkingSlot | |  Lot  |  |                  |
+|  |  +---------+ +------------+ +-------+  |                  |
+|  +----------------------------------------+                  |
+|                                                              |
+|  +----------------------------------------+                  |
+|  |         Exception Layer                |                  |
+|  |  Custom exceptions for each error      |                  |
+|  +----------------------------------------+                  |
++-------------------------------------------------------------+
 ```
 
-Output (to console, newline after every output):
+## Project Structure
 
-```sh
-Created a parking lot with 6 slots
-
-Allocated slot number: 1
-
-Allocated slot number: 2
-
-Allocated slot number: 3
-
-Allocated slot number: 4
-
-Allocated slot number: 5
-
-Allocated slot number: 6
-
-Slot number 4 is free
-
-Slot No. Registration No Colour
-
-1 KA-01-HH-1234 White
-
-2 KA-01-HH-9999 White
-
-3 KA-01-BB-0001 Black
-
-5 KA-01-HH-2701 Blue
-
-6 KA-01-HH-3141 Black
-
-Allocated slot number: 4
-
-Sorry, parking lot is full
-
-KA-01-HH-1234, KA-01-HH-9999, KA-01-P-333
-
-1, 2, 4
-
-6
-
-Not found
+```
+parking-lot-problem/
+├── src/
+│   ├── main/java/com/gojek/parkinglot/
+│   │   ├── app/                    # Application entry points
+│   │   │   └── ParkingLotApplication.java
+│   │   ├── command/                # Command pattern implementation
+│   │   │   ├── Command.java        # Command enum
+│   │   │   ├── CommandExecutor.java
+│   │   │   ├── CommandParser.java
+│   │   │   └── CommandResult.java
+│   │   ├── domain/                 # Domain entities
+│   │   │   ├── Vehicle.java
+│   │   │   ├── ParkingSlot.java
+│   │   │   └── ParkingLot.java
+│   │   ├── exception/              # Custom exceptions
+│   │   │   ├── ParkingLotException.java
+│   │   │   ├── ParkingLotFullException.java
+│   │   │   ├── ParkingLotNotCreatedException.java
+│   │   │   ├── SlotNotFoundException.java
+│   │   │   ├── VehicleNotFoundException.java
+│   │   │   └── InvalidCommandException.java
+│   │   ├── io/                     # I/O utilities
+│   │   │   ├── InputReader.java
+│   │   │   └── OutputWriter.java
+│   │   └── service/                # Business logic
+│   │       └── ParkingLotService.java
+│   └── test/java/com/gojek/parkinglot/
+│       ├── domain/                 # Domain tests
+│       ├── command/                # Command tests
+│       ├── service/                # Service tests
+│       └── integration/            # Integration tests
+├── pom.xml
+└── README.md
 ```
 
-### Example: Interactive
+## Requirements
 
-To run the program and launch the shell:
+- Java 11 or higher
+- Maven 3.6 or higher
 
-$ my_program
+## Build Instructions
 
-Assuming a parking lot with 6 slots, the following commands should be run in sequence by
-
-typing them in at a prompt and should produce output as described below the command:
-
-Input:
-
-```sh
-create_parking_lot 6
-```
-
-Output:
-
-```sh
-Created a parking lot with 6 slots
-```
-
-Input:
-
-```sh
-park KA-01-HH-1234 White
-```
-
-Output:
-
-```sh
-Allocated slot number: 1
-```
-
-Input:
-
-```sh
-park KA-01-HH-9999 White
-```
-
-Output:
-
-```sh
-Allocated slot number: 2
-```
-
-Input:
-
-```sh
-park KA-01-BB-0001 Black
-```
-
-Output:
-
-```sh
-Allocated slot number: 3
-```
-
-Input:
-
-```sh
-park KA-01-HH-7777 Red
-```
-
-Output:
-
-```sh
-Allocated slot number: 4
-```
-
-Input:
-
-```sh
-park KA-01-HH-2701 Blue
-```
-
-Output:
-
-```sh
-Allocated slot number: 5
-```
-
-Input:
-
-```sh
-park KA-01-HH-3141 Black
-```
-
-Output:
-
-```sh
-Allocated slot number: 6
-```
-
-Input:
-
-```sh
-leave 4
-```
-
-Output:
-
-```sh
-Slot number 4 is free
-```
-
-Input:
-
-```sh
-status
-```
-
-Output:
-
-```sh
-Slot No. Registration No Color
-
-1 KA-01-HH-1234 White
-
-2 KA-01-HH-9999 White
-
-3 KA-01-BB-0001 Black
-
-5 KA-01-HH-2701 Blue
-
-6 KA-01-HH-3141 Black
-```
-
-Input:
-
-```sh
-park KA­01­P­333 White
-```
-
-Output:
-
-```sh
-Allocated slot number: 4
-```
-
-Input:
-
-```sh
-park DL­12­AA­9999 White
-```
-
-Output:
-
-```sh
-Sorry, parking lot is full
-```
-
-Input:
-
-```sh
-registration_numbers_for_cars_with_colour White
-```
-
-Output:
-
-```sh
-KA-01-HH-1234, KA-01-HH-9999, KA-01-P-333
-```
-
-Input:
-
-```sh
-slot_numbers_for_cars_with_colour White
-```
-
-Output:
-
-```sh
-1, 2, 4
-```
-
-Input:
-
-```sh
-slot_number_for_registration_number KA-01-HH-3141
-```
-
-Output:
-
-```sh
-6
-```
-
-Input:
-
-```sh
-slot_number_for_registration_number MH-04-AY-1111
-```
-
-Output:
-
-```sh
-Not found
-```
-
-
-# Project Requirements
-
-1. Latest version of JDK.
-2. Latest version of maven.
-
-
-# Build Instructions
-
-Run the following command -
-```sh
+```bash
+# Clean and build with tests
 mvn clean install
+
+# Build without tests
+mvn clean install -DskipTests
+
+# Run tests only
+mvn test
+
+# Generate code coverage report
+mvn test jacoco:report
+# Report available at: target/site/jacoco/index.html
 ```
 
+## Running the Application
 
-# Running the project
+### Interactive Mode
 
-From the project directory, run this command - 
-
-```java
-   $ java -jar target/gojek-1.0.jar (Interactive command-line mode)
-   $ java -jar target/gojek-1.0.jar <inputfile> (File input)
+```bash
+java -jar target/parking-lot-2.0.0.jar
 ```
-   
 
+### File Input Mode
+
+```bash
+java -jar target/parking-lot-2.0.0.jar input_file.txt
+```
+
+## Available Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `create_parking_lot <n>` | Create a parking lot with n slots | `create_parking_lot 6` |
+| `park <reg_no> <color>` | Park a vehicle | `park KA-01-HH-1234 White` |
+| `leave <slot>` | Remove vehicle from slot | `leave 4` |
+| `status` | Show all parked vehicles | `status` |
+| `registration_numbers_for_cars_with_colour <color>` | Find registrations by color | `registration_numbers_for_cars_with_colour White` |
+| `slot_numbers_for_cars_with_colour <color>` | Find slots by color | `slot_numbers_for_cars_with_colour White` |
+| `slot_number_for_registration_number <reg_no>` | Find slot by registration | `slot_number_for_registration_number KA-01-HH-1234` |
+| `help` | Show available commands | `help` |
+| `exit` | Exit the application | `exit` |
+
+## Example Session
+
+### Input File
+
+```
+create_parking_lot 6
+park KA-01-HH-1234 White
+park KA-01-HH-9999 White
+park KA-01-BB-0001 Black
+park KA-01-HH-7777 Red
+park KA-01-HH-2701 Blue
+park KA-01-HH-3141 Black
+leave 4
+status
+park KA-01-P-333 White
+park DL-12-AA-9999 White
+registration_numbers_for_cars_with_colour White
+slot_numbers_for_cars_with_colour White
+slot_number_for_registration_number KA-01-HH-3141
+slot_number_for_registration_number MH-04-AY-1111
+```
+
+### Output
+
+```
+Created a parking lot with 6 slots
+Allocated slot number: 1
+Allocated slot number: 2
+Allocated slot number: 3
+Allocated slot number: 4
+Allocated slot number: 5
+Allocated slot number: 6
+Slot number 4 is free
+Slot No.    Registration No    Colour
+1           KA-01-HH-1234      White
+2           KA-01-HH-9999      White
+3           KA-01-BB-0001      Black
+5           KA-01-HH-2701      Blue
+6           KA-01-HH-3141      Black
+Allocated slot number: 4
+Sorry, parking lot is full
+KA-01-HH-1234, KA-01-HH-9999, KA-01-P-333
+1, 2, 4
+6
+Not found
+```
+
+## Design Decisions
+
+### Why Min-Heap for Slot Allocation?
+We use a `PriorityQueue` (min-heap) for available slots to ensure O(log n) slot allocation. This guarantees the nearest slot is always allocated first, even after vehicles leave.
+
+### Why Enum-Based Command Pattern?
+Using enums instead of reflection for command handling provides:
+- Compile-time type safety
+- Better IDE support (autocomplete, refactoring)
+- Clearer code that's easier to debug
+- Exhaustive switch statement checking
+
+### Why Immutable Vehicle?
+The `Vehicle` class is immutable to ensure:
+- Thread safety without synchronization
+- Protection against accidental modification
+- Clear value object semantics
+
+### Exception Hierarchy
+Custom exceptions provide:
+- Meaningful error messages
+- Easy differentiation between error types
+- Support for programmatic error handling
+
+## Performance Characteristics
+
+| Operation | Time Complexity |
+|-----------|-----------------|
+| Park | O(log n) |
+| Leave | O(log n) |
+| Find by Registration | O(1) |
+| Find by Color | O(k) where k = matching vehicles |
+| Status | O(n) |
+
+## Testing
+
+The project includes comprehensive tests:
+
+- **Unit Tests**: Test individual components in isolation
+- **Integration Tests**: Test complete workflows end-to-end
+- **Edge Case Coverage**: Invalid inputs, boundary conditions
+
+```bash
+# Run all tests
+mvn test
+
+# Run specific test class
+mvn test -Dtest=ParkingLotDomainTest
+
+# Run with coverage
+mvn test jacoco:report
+```
+
+## Code Quality
+
+- **Clean Code**: Follows SOLID principles
+- **Documentation**: Comprehensive JavaDoc on all public APIs
+- **Type Safety**: Strong typing throughout
+- **Error Handling**: Custom exceptions with meaningful messages
+- **Testability**: Dependency injection for easy testing
+
+## License
+
+This project is available under the MIT License.
+
+## Version History
+
+- **2.0.0**: Complete enterprise-level refactoring
+  - Clean architecture implementation
+  - Enum-based command pattern
+  - Custom exception hierarchy
+  - Comprehensive test suite
+  - Modern Maven configuration
+
+- **1.0.0**: Initial implementation
